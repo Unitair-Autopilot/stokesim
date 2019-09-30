@@ -1,0 +1,755 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 78
+    Name: Displays
+    Property Tree Widget:
+      Expanded: ~
+      Splitter Ratio: 0.566666663
+    Tree Height: 359
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Nav Goal1
+      - /Publish Point1
+    Name: Tool Properties
+    Splitter Ratio: 0.588679016
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz/Time
+    Experimental: false
+    Name: Time
+    SyncMode: 0
+    SyncSource: facade_scenery
+Toolbars:
+  toolButtonStyle: 2
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.800000012
+      Cell Size: 10
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.0299999993
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 1000
+      Reference Frame: stokesim/ENU
+      Value: true
+    - Class: rviz/TF
+      Enabled: false
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Marker Scale: 1
+      Name: Coordinates
+      Show Arrows: false
+      Show Axes: true
+      Show Names: false
+      Tree:
+        {}
+      Update Interval: 0
+      Value: false
+    - Class: rviz/Axes
+      Enabled: true
+      Length: 10
+      Name: ENU
+      Radius: 0.0500000007
+      Reference Frame: stokesim/ENU
+      Value: true
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Axes
+          Enabled: true
+          Length: 0.25
+          Name: airplane_state
+          Radius: 0.100000001
+          Reference Frame: stokesim/airplane/FLU
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: true
+          Force Arrow Scale: 0.200000003
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: airplane_lprop_wrench
+          Topic: /stokesim/airplane/actuators/lprop
+          Torque Arrow Scale: 0.5
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: true
+          Force Arrow Scale: 0.200000003
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: airplane_rprop_wrench
+          Topic: /stokesim/airplane/actuators/rprop
+          Torque Arrow Scale: 0.5
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: airplane_lail_wrench
+          Topic: /stokesim/airplane/actuators/lail
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: airplane_rail_wrench
+          Topic: /stokesim/airplane/actuators/rail
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: airplane_elv_wrench
+          Topic: /stokesim/airplane/actuators/elv
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: airplane_rud_wrench
+          Topic: /stokesim/airplane/actuators/rud
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/airplane/actuators/lail_marker
+          Name: airplane_lail_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/airplane/actuators/rail_marker
+          Name: airplane_rail_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/airplane/actuators/elv_marker
+          Name: airplane_elv_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/airplane/actuators/rud_marker
+          Name: airplane_rud_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+      Enabled: true
+      Name: airplane
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Axes
+          Enabled: true
+          Length: 0.25
+          Name: quadcopter_state
+          Radius: 0.100000001
+          Reference Frame: stokesim/quadcopter/FLU
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: true
+          Force Arrow Scale: 0.200000003
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadcopter_prop0_wrench
+          Topic: /stokesim/quadcopter/actuators/prop0
+          Torque Arrow Scale: 0.5
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: true
+          Force Arrow Scale: 0.200000003
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadcopter_prop1_wrench
+          Topic: /stokesim/quadcopter/actuators/prop1
+          Torque Arrow Scale: 0.5
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: true
+          Force Arrow Scale: 0.200000003
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadcopter_prop2_wrench
+          Topic: /stokesim/quadcopter/actuators/prop2
+          Torque Arrow Scale: 0.5
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: true
+          Force Arrow Scale: 0.200000003
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadcopter_prop3_wrench
+          Topic: /stokesim/quadcopter/actuators/prop3
+          Torque Arrow Scale: 0.5
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: true
+      Enabled: true
+      Name: quadcopter
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Axes
+          Enabled: true
+          Length: 0.25
+          Name: deltawing_state
+          Radius: 0.100000001
+          Reference Frame: stokesim/deltawing/FLU
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: true
+          Force Arrow Scale: 0.200000003
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: deltawing_thruster_wrench
+          Topic: /stokesim/deltawing/actuators/thruster
+          Torque Arrow Scale: 0.5
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: deltawing_lail_wrench
+          Topic: /stokesim/deltawing/actuators/lail
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: deltawing_rail_wrench
+          Topic: /stokesim/deltawing/actuators/rail
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: deltawing_lfin_wrench
+          Topic: /stokesim/deltawing/actuators/lfin
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: deltawing_rfin_wrench
+          Topic: /stokesim/deltawing/actuators/rfin
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/deltawing/actuators/lail_marker
+          Name: deltawing_lail_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/deltawing/actuators/rail_marker
+          Name: deltawing_rail_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/deltawing/actuators/lfin_marker
+          Name: deltawing_lfin_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/deltawing/actuators/rfin_marker
+          Name: deltawing_rfin_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 85; 0; 255
+          Enabled: true
+          Head Diameter: 0.300000012
+          Head Length: 0.200000003
+          Length: 0.125
+          Line Style: Lines
+          Line Width: 0.0299999993
+          Name: deltawing_path
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.0500000007
+          Shaft Diameter: 0.100000001
+          Shaft Length: 0.100000001
+          Topic: /stokesolve/deltawing/path
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Class: rviz/Polygon
+          Color: 25; 255; 0
+          Enabled: true
+          Name: deltawing_polygon
+          Topic: /stokesolve/deltawing/polygon
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 10
+          Class: rviz/Pose
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.300000012
+          Head Radius: 0.100000001
+          Name: deltawing_target
+          Shaft Length: 1
+          Shaft Radius: 0.0500000007
+          Shape: Axes
+          Topic: /stokesolve/deltawing/target
+          Unreliable: false
+          Value: true
+      Enabled: true
+      Name: deltawing
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Axes
+          Enabled: true
+          Length: 0.25
+          Name: quadwing_state
+          Radius: 0.100000001
+          Reference Frame: stokesim/quadwing/FLU
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: true
+          Force Arrow Scale: 0.200000003
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadwing_thruster_wrench
+          Topic: /stokesim/quadwing/actuators/thruster
+          Torque Arrow Scale: 0.5
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadwing_lailf_wrench
+          Topic: /stokesim/quadwing/actuators/lailf
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadwing_railf_wrench
+          Topic: /stokesim/quadwing/actuators/railf
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadwing_lailb_wrench
+          Topic: /stokesim/quadwing/actuators/lailb
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadwing_railb_wrench
+          Topic: /stokesim/quadwing/actuators/railb
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadwing_lfin_wrench
+          Topic: /stokesim/quadwing/actuators/lfin
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz/WrenchStamped
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: quadwing_rfin_wrench
+          Topic: /stokesim/quadwing/actuators/rfin
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Unreliable: false
+          Value: false
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/quadwing/actuators/lailf_marker
+          Name: quadwing_lailf_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/quadwing/actuators/railf_marker
+          Name: quadwing_railf_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/quadwing/actuators/lailb_marker
+          Name: quadwing_lailb_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/quadwing/actuators/railb_marker
+          Name: quadwing_railb_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/quadwing/actuators/lfin_marker
+          Name: quadwing_lfin_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /stokesim/quadwing/actuators/rfin_marker
+          Name: quadwing_rfin_marker
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 85; 0; 255
+          Enabled: true
+          Head Diameter: 0.300000012
+          Head Length: 0.200000003
+          Length: 0.125
+          Line Style: Lines
+          Line Width: 0.0299999993
+          Name: quadwing_path
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.0500000007
+          Shaft Diameter: 0.100000001
+          Shaft Length: 0.100000001
+          Topic: /stokesolve/quadwing/path
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Class: rviz/Polygon
+          Color: 25; 255; 0
+          Enabled: true
+          Name: quadwing_polygon
+          Topic: /stokesolve/quadwing/polygon
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 10
+          Class: rviz/Pose
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.300000012
+          Head Radius: 0.100000001
+          Name: quadwing_target
+          Shaft Length: 1
+          Shaft Radius: 0.0500000007
+          Shape: Axes
+          Topic: /stokesolve/quadwing/target
+          Unreliable: false
+          Value: true
+      Enabled: true
+      Name: quadwing
+    - Class: rviz/Group
+      Displays:
+        - Alpha: 0.200000003
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 781.916992
+            Min Value: -1693.66516
+            Value: true
+          Axis: X
+          Channel Name: intensity
+          Class: rviz/PointCloud
+          Color: 255; 255; 255
+          Color Transformer: AxisColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 4096
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: facade_scenery
+          Position Transformer: XYZ
+          Queue Size: 1
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 100
+          Style: Flat Squares
+          Topic: /stokesim/facade/scenery
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 1983.73889
+            Min Value: -159.414459
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud
+          Color: 255; 255; 255
+          Color Transformer: AxisColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 4096
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: facade_obstacles
+          Position Transformer: XYZ
+          Queue Size: 1
+          Selectable: false
+          Size (Pixels): 3
+          Size (m): 100
+          Style: Boxes
+          Topic: /stokesim/facade/obstacles
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 170; 170; 255
+          Enabled: true
+          Head Diameter: 0.300000012
+          Head Length: 0.200000003
+          Length: 0.300000012
+          Line Style: Billboards
+          Line Width: 3
+          Name: facade_road
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.0299999993
+          Shaft Diameter: 0.100000001
+          Shaft Length: 0.100000001
+          Topic: /stokesim/facade/road
+          Unreliable: false
+          Value: true
+      Enabled: true
+      Name: Facade
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Default Light: true
+    Fixed Frame: stokesim/view
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+      Topic: /initialpose
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
+  Value: true
+  Views:
+    Current:
+      Class: rviz/ThirdPersonFollower
+      Distance: 0.00999999978
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.0599999987
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: 0.00999999978
+        Y: 0
+        Z: 0
+      Focal Shape Fixed Size: false
+      Focal Shape Size: 0.0500000007
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.00999999978
+      Pitch: 0
+      Target Frame: stokesim/view
+      Value: ThirdPersonFollower (rviz)
+      Yaw: 3.14159012
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: true
+  Height: 1176
+  Hide Left Dock: true
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd00000004000000000000016a00000411fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000002800000411000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000411fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000002800000411000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003bfc0100000002fb0000000800540069006d006501000000000000074f0000030000fffffffb0000000800540069006d006501000000000000045000000000000000000000074f0000041100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: true
+  Width: 1871
+  X: 1969
+  Y: 24

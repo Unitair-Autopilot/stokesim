@@ -1,0 +1,280 @@
+#!/usr/bin/env python
+"""
+This script performs system identification for a single craft of the simulator's model.
+
+                THIS IS JUST A PROTOTYPE
+
+"""
+from __future__ import division
+import os
+import sys
+import yaml
+from copy import deepcopy
+import autograd.numpy as np; npl = np.linalg
+from autograd import grad, value_and_grad
+from scipy.optimize import minimize
+from matplotlib import pyplot
+
+################################################# PARSE ARGS
+
+if len(sys.argv) != 3:
+    raise ValueError("Pass in the path to a Craft configuration YAML to use as the initial guess," +
+                     " and the log file to fit to.")
+
+print("Running system identification...")
+
+################################################# LOAD INITIAL GUESS CRAFT
+
+with open(sys.argv[1]) as file:
+    craft0 = yaml.safe_load(file)
+results_file = os.path.join(os.path.dirname(sys.argv[1]), "sysid_results.yml")
+
+n_thr = len(craft0["thrusters"])
+n_surf = len(craft0["surfaces"])
+n_params = 3 + 3 + 3 + 3 + 3 + n_surf + 2*n_surf
+         # rp cp1 cp2  cq  wind   ci        rpi
+
+params0 = []
+params0.extend(craft0["r_pres"])
+params0.extend(np.diag(craft0["Cp1"]))
+params0.extend(np.diag(craft0["Cp2"]))
+params0.extend(np.diag(craft0["Cq"]))
+params0.extend([0, 0, 0])
+for i in range(n_surf):
+    params0.append(craft0["surfaces"][i]["coeff"])
+    params0.extend(craft0["surfaces"][i]["r_pres"][:2])
+params0 = np.array(params0)
+
+################################################# QUATERNION TOOLS (ijk1)
+
+def qinv(q):
+    return np.array([-q[0], -q[1], -q[2], q[3]])
+
+def qapply(q, v, reverse=False):
+    uv = 2*np.cross(q[:-1], v)
+    if reverse: return v - q[-1]*uv + np.cross(q[:-1], uv)
+    else: return v + q[-1]*uv + np.cross(q[:-1], uv)
+
+def qcompose(ql, qr):
+    return np.array([ql[0]*qr[3] + ql[1]*qr[2] - ql[2]*qr[1] + ql[3]*qr[0],
+                    -ql[0]*qr[2] + ql[1]*qr[3] + ql[2]*qr[0] + ql[3]*qr[1],
+                     ql[0]*qr[1] - ql[1]*qr[0] + ql[2]*qr[3] + ql[3]*qr[2],
+                    -ql[0]*qr[0] - ql[1]*qr[1] - ql[2]*qr[2] + ql[3]*qr[3]])
+
+def qexpmap(r):
+    angle = np.mod(npl.norm(r), 2*np.pi)
+    if np.isclose(angle, 0): return np.array([0, 0, 0, 1], dtype=np.float64)
+    return np.concatenate((np.sin(angle/2)*np.divide(r, angle), np.array([np.cos(angle/2)])))
+
+def qlogmap(q):
+    q = np.array(q, dtype=np.float64)
+    sina2 = npl.norm(q[:-1])
+    if q[-1] < 0: q = -q
+    if np.isclose(sina2, 0, atol=1e-3):
+        return np.zeros(3, dtype=np.float64)
+    res = 2*np.arccos(q[-1]) * q[:-1]/sina2
+    if np.any(np.isnan(res)):
+        return np.zeros(3, dtype=np.float64)
+    return res
+
+def normalize(x):
+    return np.divide(x, npl.norm(x))
+
+DEG2RAD = np.pi/180
+RAD2DEG = 180/np.pi
+
+################################################# DIFFERENTIABLE MODEL
+
+class Dmodel(object):
+    def __init__(self, craft0):
+        self.craft0 = deepcopy(craft0)
+        self.gravity = np.array([-1.54004e-06, 0.0169149, -9.82222])        # hard-code these
+        self.density = 1.21677                                              # for the flight data
+        self.Bp = np.zeros((3, n_thr))
+        self.Bq = np.zeros((3, n_thr))
+        for i in range(n_thr):
+            self.craft0["thrusters"][i]["dir"] = normalize(self.craft0["thrusters"][i]["dir"])
+            self.Bp[:, i] = self.craft0["thrusters"][i]["dir"]
+            self.Bq[:, i] = np.cross(self.craft0["thrusters"][i]["pos"], self.Bp[:, i])
+        self.surf_areas = []
+        for i in range(n_surf):
+            self.surf_areas.append(abs(np.product(self.craft0["surfaces"][i]["dims"])))
+            qs0 = normalize(self.craft0["surfaces"][i]["orient0"])
+            self.craft0["surfaces"][i]["orient0"] = np.array([qs0[1], qs0[2], qs0[3], qs0[0]])
+            self.craft0["surfaces"][i]["axis"] = normalize(self.craft0["surfaces"][i]["axis"])
+        self.invM = npl.inv(self.craft0["M"])
+
+    def set_params(self, params):
+        self.r_pres = np.array(params[:3])
+        self.Cp1 = np.diag(params[3:6])
+        self.Cp2 = np.diag(params[6:9])
+        self.Cq = np.diag(params[9:12])
+        self.wind = np.array(params[12:15])
+        self.Cs = []
+        for i in range(n_surf):
+            csi = np.array([params[15+3*i]])
+            rpi = params[16+3*i:16+2+3*i]
+            self.Cs.append(np.concatenate((csi, rpi, np.array([0]))))
+
+    def get_accel(self, p, q, v, w, ut, us):
+        # Wind
+        vrel = v - qapply(q, self.wind, reverse=True)
+        # Buoyancy
+        force_buoy = qapply(q, -self.density*self.craft0["vol"]*self.gravity, reverse=True)
+        torque_buoy = np.cross(self.craft0["r_buoy"], (force_buoy))
+        # Thrusters
+        thrusts = np.zeros(n_thr)
+        for i in range(n_thr):
+            thrusts[i] = self.craft0["thrusters"][i]["c1"]*ut[i] + self.craft0["thrusters"][i]["c2"]*abs(ut[i])*ut[i]
+        force_thrs = np.dot(self.Bp, thrusts)
+        torque_thrs = np.dot(self.Bq, thrusts)
+        # Surfaces
+        force_surfs = np.zeros(3)
+        torque_surfs = np.zeros(3)
+        for i in range(n_surf):
+            surf = self.craft0["surfaces"][i]
+            qs = qcompose(surf["orient0"], qexpmap(DEG2RAD*us[i]*surf["axis"]))
+            ps = np.add(surf["origin"], qapply(qs, self.Cs[i][1:]))
+            vs = qapply(qs, vrel+np.cross(w, ps), reverse=True)
+            force_surf = qapply(qs, -self.density*self.surf_areas[i]*self.Cs[i][0]*abs(vs[2])*vs[2]*np.array([0, 0, 1.0]))
+            torque_surf = np.cross(ps, force_surf)
+            force_surfs = force_surfs + force_surf
+            torque_surfs = torque_surfs + torque_surf
+        # Chassis
+        vc = vrel + np.cross(w, self.r_pres)
+        force_fluid = -self.density*np.array(self.craft0["areas"])*(np.dot(self.Cp1, vc) + np.dot(self.Cp2, np.abs(vc)*vc))
+        torque_fluid = np.cross(self.r_pres, force_fluid) - np.dot(self.Cq, w)
+        # Accelerations
+        return np.concatenate((
+            (force_buoy + force_thrs + force_surfs + force_fluid)/self.craft0["mass"] + qapply(q, self.gravity, reverse=True) - np.cross(w, v),
+            np.dot(self.invM, torque_buoy + torque_thrs + torque_surfs + torque_fluid - np.cross(w, np.dot(self.craft0["M"], w)))
+        ))
+
+################################################# LOAD FLIGHT DATA
+
+ds = 1  # downsampling factor
+content = np.genfromtxt(sys.argv[2], delimiter=',', dtype=str)
+header = content[0]
+data = np.float64(content[1::ds])
+
+T = np.zeros(len(data))
+P = np.zeros((len(data), 3))
+Q = np.zeros((len(data), 4))
+V = np.zeros((len(data), 3))
+W = np.zeros((len(data), 3))
+Ut = []
+Us = []
+
+for i, h in enumerate(header):
+    if h == "t": T = data[:, i]
+    if h == "p0": P[:, 0] = data[:, i]
+    if h == "p1": P[:, 1] = data[:, i]
+    if h == "p2": P[:, 2] = data[:, i]
+    if h == "qi": Q[:, 0] = data[:, i]
+    if h == "qj": Q[:, 1] = data[:, i]
+    if h == "qk": Q[:, 2] = data[:, i]
+    if h == "qw": Q[:, 3] = data[:, i]
+    if h == "v0": V[:, 0] = data[:, i]
+    if h == "v1": V[:, 1] = data[:, i]
+    if h == "v2": V[:, 2] = data[:, i]
+    if h == "w0": W[:, 0] = data[:, i]
+    if h == "w1": W[:, 1] = data[:, i]
+    if h == "w2": W[:, 2] = data[:, i]
+    if h[:7] == "thr_cmd": Ut.append(data[:, i])
+    if h[:8] == "surf_cmd": Us.append(data[:, i])
+Ut = np.float64(Ut).T
+Us = np.float64(Us).T
+
+# Compute accelerations
+A = np.zeros((len(data)-1, 6))
+dur = 0
+for i in range(len(A)):
+    dt = T[i+1] - T[i]
+    A[i, :3] = (V[i+1] - V[i]) / dt
+    A[i, 3:] = (W[i+1] - W[i]) / dt
+    dur += dt
+
+################################################# OPTIMIZE
+
+dmodel = Dmodel(craft0)
+Aest = [np.zeros(6)]*len(data)
+calls = 1
+temp_params = None
+params_evo = []
+
+def objective(params):
+    global calls, temp_params
+    temp_params = params
+    params_evo.append(np.array(params))
+    print("----\nObective calls:", calls)
+    calls += 1
+    dmodel.set_params(params)
+    for i, (p, q, v, w, ut, us) in enumerate(zip(P, Q, V, W, Ut, Us)):
+        Aest[i] = dmodel.get_accel(p, q, v, w, ut, us)
+    cost = np.sum((A - Aest[:-1])**2)/dur
+    try:
+        print("Current cost:", cost._value)
+    except AttributeError:
+        print("Current cost:", cost)
+    return cost
+
+try:
+    result = minimize(fun=objective,
+                      x0=params0,
+                      jac=grad(objective),
+                      method="SLSQP",
+                      options={"maxiter": 40, "disp": True})
+    params = result.x
+    success = result.success
+except KeyboardInterrupt:
+    print("Early cancellation!")
+    params = temp_params._value
+    success = False
+
+################################################# HANDLE RESULTS
+
+print("Success:", success)
+print("Final params:")
+print(params)
+
+results_craft = deepcopy(craft0)
+results_craft["r_pres"] = params[:3].tolist()
+results_craft["Cp1"] = np.diag(params[3:6]).tolist()
+results_craft["Cp2"] = np.diag(params[6:9]).tolist()
+results_craft["Cq"] = np.diag(params[9:12]).tolist()
+results_craft["env_wind"] = params[12:15].tolist()
+for i in range(len(results_craft["surfaces"])):
+    results_craft["surfaces"][i]["coeff"] = params[15+3*i].tolist()
+    results_craft["surfaces"][i]["r_pres"] = params[16+3*i:16+2+3*i].tolist()
+    results_craft["surfaces"][i]["r_pres"].append(0)
+
+print("Writing craft to: {}".format(results_file))
+with open(results_file, 'w') as fout:
+    yaml.dump(results_craft, fout, default_flow_style=False)
+print("Done!")
+
+print("Plotting acceleration fits...")
+fig = pyplot.figure()
+for i in range(6):
+    ax = fig.add_subplot(6, 1, i+1)
+    try:
+        Aesti = [aest._value[i] for aest in Aest]
+    except AttributeError:
+        Aesti = [aest[i] for aest in Aest]
+    ax.plot(T, Aesti, "k")
+    ax.scatter(T[:-1], A[:, i], c="g", s=4)
+    ax.grid(True)
+
+def auto_value(arr):
+    try:
+        return arr._value
+    except AttributeError:
+        return arr
+
+fig = pyplot.figure()
+fig.suptitle("Parameter Evolution", fontsize=16)
+ax = fig.add_subplot(1, 1, 1)
+ax.plot([auto_value(arr) for arr in params_evo])
+ax.grid(True)
+
+pyplot.show()

@@ -1,0 +1,185 @@
+#!/usr/bin/env python
+"""
+This Python script plots a given log file created by the example logger plugin.
+You can optionally also pass in a start and stop time.
+
+"""
+from __future__ import division
+import sys
+import numpy as np
+from matplotlib import pyplot
+from mpl_toolkits.mplot3d import Axes3D
+
+# Parse input arguments
+if len(sys.argv) < 2:
+    raise ValueError("Please pass in the absolute path to a proper logger output file.")
+if len(sys.argv) == 3:
+    start = 0
+    end = float(sys.argv[2])
+if len(sys.argv) == 4:
+    start = float(sys.argv[2])
+    end = float(sys.argv[3])
+
+# Extract data
+file = sys.argv[1]
+content = np.genfromtxt(file, delimiter=',', dtype=str)
+type_header = content[0]
+name_header = content[1]
+data = np.float64(content[2:])
+dt = data[1, 0] - data[0, 0]
+if len(sys.argv) > 2:
+    data = data[int(start/dt):int(end/dt), :]
+
+# Returns the aerospace z-y'-x'' euler angles in radians as [roll, pitch, yaw] associated with the quaternion q = [w, x, y, z]
+def euler_from_quaternion(q):
+    euler = np.zeros(3)
+    euler[0] = np.arctan2(2.0*(q[0]*q[1] + q[2]*q[3]), 1.0 - 2.0*(q[1]*q[1] + q[2]*q[2]))
+    sinp = 2.0*(q[0]*q[2] - q[3]*q[1])
+    if abs(sinp) >= 1:
+        euler[1] = np.sign(sinp)*np.pi/2
+    else:
+        euler[1] = np.arcsin(sinp)
+    euler[2] = np.arctan2(2.0*(q[0]*q[3] + q[1]*q[2]), 1.0 - 2.0*(q[2]*q[2] + q[3]*q[3]))
+    return euler
+
+print("Plotting...")
+
+# Count types
+n_sensors = 0
+n_actuators = 0
+for ty in type_header:
+    if ty == "sensor": n_sensors += 1
+    elif ty == "actuator": n_actuators += 1
+
+# Categorize data
+T = data[:, 0]
+P = data[:, 1:4]
+Q = data[:, 4:8]
+E = np.float64([euler_from_quaternion(q) for q in Q])
+V = data[:, 8:11]
+W = data[:, 11:14]
+S = data[:, 14:14+n_sensors]
+U = data[:, 14+n_sensors:14+n_sensors+n_actuators]
+
+# Radians to degrees
+Ed = E * (180/np.pi)
+Wd = W * (180/np.pi)
+
+# State timeseries figure
+fig = pyplot.figure()
+fig.suptitle("State Timeseries Results", fontsize=16)
+figrows = 4
+figcols = 1
+
+# Position
+ax = fig.add_subplot(figrows, figcols, 1)
+ax.set_ylabel("meters", fontsize=12)
+ax.plot(T, P[:, 0], 'r', label="East")
+ax.plot(T, P[:, 1], 'g', label="North")
+ax.plot(T, P[:, 2], 'b', label="Up")
+ax.set_xlim((T[0], T[-1]))
+ax.grid(True)
+ax.legend()
+
+# Attitude
+ax = fig.add_subplot(figrows, figcols, 2, sharex=ax)
+ax.set_ylabel("degrees", fontsize=12)
+ax.plot(T, Ed[:, 0], 'r', label="roll")
+ax.plot(T, Ed[:, 1], 'g', label="pitch")
+ax.plot(T, Ed[:, 2], 'b', label="yaw")
+ax.set_xlim((T[0], T[-1]))
+ax.grid(True)
+ax.legend()
+
+# Velocity
+ax = fig.add_subplot(figrows, figcols, 3, sharex=ax)
+ax.set_ylabel("meters/second", fontsize=12)
+ax.plot(T, V[:, 0], 'r', label="surge")
+ax.plot(T, V[:, 1], 'g', label="sway")
+ax.plot(T, V[:, 2], 'b', label="heave")
+ax.set_xlim((T[0], T[-1]))
+ax.grid(True)
+ax.legend()
+
+# Angvel
+ax = fig.add_subplot(figrows, figcols, 4, sharex=ax)
+ax.set_ylabel("degrees/second", fontsize=12)
+ax.set_xlabel("seconds", fontsize=12)
+ax.plot(T, Wd[:, 0], 'r', label="rolling")
+ax.plot(T, Wd[:, 1], 'g', label="pitching")
+ax.plot(T, Wd[:, 2], 'b', label="yawing")
+ax.set_xlim((T[0], T[-1]))
+ax.grid(True)
+ax.legend()
+
+# Sensors
+fig = pyplot.figure()
+fig.suptitle("Measurements", fontsize=16)
+ax = None
+for i in range(S.shape[1]):
+    ax = fig.add_subplot(S.shape[1], 1, i+1, sharex=ax)
+    ax.set_ylabel(name_header[14+i], fontsize=8)
+    ax.plot(T, S[:, i])
+    ax.set_xlim(T[0], T[-1])
+    ax.grid(True)
+if ax:
+    ax.set_xlabel("seconds", fontsize=12)
+
+# Actuators
+fig = pyplot.figure()
+fig.suptitle("Actuator Force Norms", fontsize=16)
+ax = None
+for i in range(U.shape[1]):
+    ax = fig.add_subplot(U.shape[1], 1, i+1, sharex=ax)
+    ax.set_ylabel(name_header[14+n_sensors+i], fontsize=8)
+    ax.plot(T, U[:, i])
+    ax.set_xlim(T[0], T[-1])
+    ax.grid(True)
+if ax:
+    ax.set_xlabel("seconds", fontsize=12)
+
+# Uses a given quaternion q = [w, x, y, z] to rotate the given vector v
+def qapply(q, v, reverse=False):
+    uv = 2*np.cross(q[1:], v)
+    if reverse: return v - q[0]*uv + np.cross(q[1:], uv)
+    else: return v + q[0]*uv + np.cross(q[1:], uv)
+
+# Compute heading vectors
+ds = max((int(2/dt), 1))
+Hf = []; Hl = []; Hu = []
+for q in Q[::ds]:
+    Hf.append(qapply(q, [1, 0, 0]))
+    Hl.append(qapply(q, [0, 1, 0]))
+    Hu.append(qapply(q, [0, 0, 1]))
+H = np.vstack((Hf, Hl, Hu))
+Ph = np.vstack((P[::ds], P[::ds], P[::ds]))
+
+# Parametric figure and results
+fig = pyplot.figure(figsize=(6, 6))
+ax = fig.add_subplot(1, 1, 1, projection="3d")
+ax.set_title("Pose Trajectory", fontsize=16)
+ax.set_xlabel("East (m)", fontsize=16)
+ax.set_ylabel("North (m)", fontsize=16)
+ax.set_zlabel("Up (m)", fontsize=16)
+ax.plot(P[:, 0], P[:, 1], P[:, 2], 'k')
+ax.scatter(P[0, 0], P[0, 1], P[0, 2], color='g', s=50)
+span = abs(np.max(P) - np.min(P))
+cen = np.mean(P, axis=0)
+try:
+    ax.quiver(Ph[:, 0], Ph[:, 1], Ph[:, 2], H[:, 0], H[:, 1], H[:, 2],
+              color='r', length=0.05*span, normalize=True)
+except AttributeError:
+    ax.quiver(Ph[:, 0], Ph[:, 1], Ph[:, 2], H[:, 0], H[:, 1], H[:, 2],
+              color='r', length=0.05*span, norm=True)
+ground_xx, ground_yy = np.meshgrid(np.linspace(cen[0]-span, cen[0]+span, 5),
+                                   np.linspace(cen[1]-span, cen[1]+span, 5))
+ax.plot_surface(ground_xx, ground_yy, np.zeros_like(ground_xx), color='b', alpha=0.2)
+ax.set_xlim((cen[0]-span, cen[0]+span))
+ax.set_ylim((cen[1]-span, cen[1]+span))
+if np.min(P[:, 2]) < -0.5: ax.set_zlim((cen[2]-span, cen[2]+span))
+else: ax.set_zlim((cen[2]-0.1*span, cen[2]+1.9*span))
+ax.grid(True)
+
+# Display all
+print("Close plots to finish...")
+pyplot.show()

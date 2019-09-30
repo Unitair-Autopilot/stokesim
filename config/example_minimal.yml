@@ -1,0 +1,88 @@
+# This example stokesim config-file is minimal in that it only
+# creates one craft, doesn't override any default parameters,
+# and only uses the logger plugin (which has no dependencies).
+# It simply configures a passive flight for a small airplane.
+# For more complicated scenarios, generating the required YAML
+# file via a Python script (like example_basic.gen) is recommended.
+# This is primarily for testing a nominal stokesim build standalone,
+# and assumes stokesim is being run from its build directory.
+
+realtime: false  # whether or not sim-time throttles back to real-time (useful for real-time interaction)
+end_time: 60  # terminal sim-time (negative implies endless sim), s
+
+world:
+
+  clock:
+    dt0: 0.0005  # initial integration timestep, s
+
+  env:
+    geoid:
+      enu0_lla: {"lat": 42.493759, "lon": -71.674338, "alt": 1}  # LLA of ENU origin, [deg, deg, m]
+    atmos:
+      wind_mean: [0.1, 0.3, 0]  # uniform wind mean velocity in local ENU coordinates, m/s
+      turb_taus: [30, 30, 10]  # time-constants measuring the mean-return tendency of the wind field, s
+      turb_covar: [[0.01,    0,    0],
+                   [   0, 0.01,    0],
+                   [   0,    0, 0.01]]  # wind turbulence random walk covariance matrix, (m/s)^2
+    magneto: null  # defaults to NOAA WMM-2020
+    octree: null  # empty
+
+  crafts:
+    coolplane:
+      body:
+        pos0: [0, 0, 100]  # initial position of the center-of-mass in ENU, m
+        ori0: {"w": 1, "x": 0, "y": 0, "z": 0}  # initial orientation of COM-coordinates relative to ENU
+        vel0: [80, 0, 0]  # initial velocity of the COM relative to geoid expressed in COM-coordinates, m/s
+        avel0: [0, 0, 0]  # initial angular velocity of body relative to geoid expressed in COM-coordinates, rad/s
+        mass: 2  # total mass (including other parts of owner craft), kg
+        inertia: [[0.100,     0, 0.001],
+                  [    0, 0.100,     0],
+                  [0.001,     0,     1]]  # inertia tensor (including other parts of owner craft) expressed in COM-coordinates, kg*m^2
+        centroid: [0, 0, 0]  # position of the geometric centroid in COM-coordinates, m
+        bounding_box: [1, 1, 0.3]  # edge dimensions of COM-coordinate-aligned bounding box, m
+        areas: [0.025, 0.1, 0.5]  # largest cross-sectional area along each COM-coordinate axis, m^2
+        volume: 0.05  # total volume (including other parts of owner craft), m^3
+        cenpres: [0, 0, 0]  # position of the center of pressure of the body (no actuators) in COM-coordinates, m
+        Cp1: [[0, 0,  0],
+              [0, 5,  0],
+              [0, 0, 20]]  # translational linear-drag tensor in COM-coordinates, N/(m/s)
+        Cp2: [[1, 0, 0],
+              [0, 1, 0],
+              [0, 0, 2]]  #  translational quadratic-drag tensor in COM-coordinates, N/(m/s)^2
+        Cq: [[0.1,   0, 0],
+             [  0, 0.1, 0],
+             [  0,   0, 1]]  # rotational linear-drag tensor in COM-coordinates, N*m/(rad/s)
+      actuators:
+        tail:  # just a passive vertical stabilizer
+          type: "surface"
+          dims: [-0.125, 0.2]  # lengths along the surface 0 and 1 directions, m
+          coeff: 3  # coefficient for quadratic-drag inducing face
+          origin: [-0.375, 0, 0]  # mounting point and origin of surface-coordinates in COM-coordinates, m
+          orient0: {"w": 0.707106781, "x": 0.707106781, "y": 0, "z": 0}  # trim orientation of surface-coordinates relative to COM-coordinates
+          cenpres: [-0.0625, 0.1, 0]  # vector in surface-coordinates of the center of pressure, m
+          axis: [0, 1, 0]  # direction vector in surface-coordinates about which the surface can be rotated
+          ang_min: 0  # minimum deflection angle, deg
+          ang_max: 0  # maximum deflection angle, deg
+          angdot: 0  # angular velocity magnitude for rotating the surface, deg/s
+      sensors:
+        mag:  # why not have a calibrated magnetometer while we're at it?
+          type: "magnetometer"
+          freq: 100  # sampling rate, Hz
+          pos: [0, 0, 0]  # position on the craft in COM-coordinates, m
+          rotmat: [[1, 0, 0],
+                   [0, 1, 0],
+                   [0, 0, 1]]  # orientation matrix of sensor-coordinates relative to COM-coordinates
+          noise_covar: [[5.e-14,      0,      0],
+                        [     0, 5.e-14,      0],
+                        [     0,      0, 5.e-14]]  # noise covariance matrix, T^2
+          hard_distort: [0, 0, 0]  # "hard-iron" distortion vector, T
+          soft_distort: [[1, 0, 0],
+                         [0, 1, 0],
+                         [0, 0, 1]]  # "soft-iron" distortion matrix
+
+plugins:
+  coolplane_logger:
+    bin_file: "plugins/logger.so"  # file containing the compiled plugin
+    call_freq: 20  # sim-time frequency (Hz) at which this plugin's work function is called
+    craft_name: "coolplane"  # name of the craft of interest to log
+    log_file: "logs/coolplane_log.txt"  # file to write the log to (directory must exist)

@@ -1,0 +1,351 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 78
+    Name: Displays
+    Property Tree Widget:
+      Expanded: ~
+      Splitter Ratio: 0.447841734
+    Tree Height: 898
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Nav Goal1
+      - /Publish Point1
+    Name: Tool Properties
+    Splitter Ratio: 0.588679016
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz/Time
+    Experimental: false
+    Name: Time
+    SyncMode: 0
+    SyncSource: ""
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.100000001
+      Cell Size: 500
+      Class: rviz/Grid
+      Color: 255; 255; 255
+      Enabled: true
+      Line Style:
+        Line Width: 0.0299999993
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 50
+      Reference Frame: stokesim/ENU
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 5
+      Frames:
+        All Enabled: false
+        stokesim/ENU:
+          Value: true
+        stokesim/airplane/ENU:
+          Value: false
+        stokesim/airplane/FLU:
+          Value: true
+        stokesim/airplane/actuators/elv:
+          Value: false
+        stokesim/airplane/actuators/lail:
+          Value: false
+        stokesim/airplane/actuators/lprop:
+          Value: false
+        stokesim/airplane/actuators/rail:
+          Value: false
+        stokesim/airplane/actuators/rprop:
+          Value: false
+        stokesim/airplane/actuators/rud:
+          Value: false
+        stokesim/quadwing/ENU:
+          Value: false
+        stokesim/quadwing/FLU:
+          Value: true
+        stokesim/quadwing/actuators/lailb:
+          Value: false
+        stokesim/quadwing/actuators/lailf:
+          Value: false
+        stokesim/quadwing/actuators/lfin:
+          Value: false
+        stokesim/quadwing/actuators/railb:
+          Value: false
+        stokesim/quadwing/actuators/railf:
+          Value: false
+        stokesim/quadwing/actuators/rfin:
+          Value: false
+        stokesim/quadwing/actuators/thruster:
+          Value: false
+        stokesim/quadcopter/ENU:
+          Value: false
+        stokesim/quadcopter/FLU:
+          Value: true
+        stokesim/quadcopter/actuators/prop0:
+          Value: false
+        stokesim/quadcopter/actuators/prop1:
+          Value: false
+        stokesim/quadcopter/actuators/prop2:
+          Value: false
+        stokesim/quadcopter/actuators/prop3:
+          Value: false
+        stokesim/deltawing/ENU:
+          Value: false
+        stokesim/deltawing/FLU:
+          Value: true
+        stokesim/deltawing/actuators/lail:
+          Value: false
+        stokesim/deltawing/actuators/lfin:
+          Value: false
+        stokesim/deltawing/actuators/rail:
+          Value: false
+        stokesim/deltawing/actuators/rfin:
+          Value: false
+        stokesim/deltawing/actuators/thruster:
+          Value: false
+      Marker Scale: 200
+      Name: Coordinates
+      Show Arrows: false
+      Show Axes: true
+      Show Names: true
+      Tree:
+        stokesim/ENU:
+          stokesim/airplane/ENU:
+            {}
+          stokesim/airplane/FLU:
+            stokesim/airplane/actuators/elv:
+              {}
+            stokesim/airplane/actuators/lail:
+              {}
+            stokesim/airplane/actuators/lprop:
+              {}
+            stokesim/airplane/actuators/rail:
+              {}
+            stokesim/airplane/actuators/rprop:
+              {}
+            stokesim/airplane/actuators/rud:
+              {}
+          stokesim/quadwing/ENU:
+            {}
+          stokesim/quadwing/FLU:
+            stokesim/quadwing/actuators/lailb:
+              {}
+            stokesim/quadwing/actuators/lailf:
+              {}
+            stokesim/quadwing/actuators/lfin:
+              {}
+            stokesim/quadwing/actuators/railb:
+              {}
+            stokesim/quadwing/actuators/railf:
+              {}
+            stokesim/quadwing/actuators/rfin:
+              {}
+            stokesim/quadwing/actuators/thruster:
+              {}
+          stokesim/quadcopter/ENU:
+            {}
+          stokesim/quadcopter/FLU:
+            stokesim/quadcopter/actuators/prop0:
+              {}
+            stokesim/quadcopter/actuators/prop1:
+              {}
+            stokesim/quadcopter/actuators/prop2:
+              {}
+            stokesim/quadcopter/actuators/prop3:
+              {}
+          stokesim/deltawing/ENU:
+            {}
+          stokesim/deltawing/FLU:
+            stokesim/deltawing/actuators/lail:
+              {}
+            stokesim/deltawing/actuators/lfin:
+              {}
+            stokesim/deltawing/actuators/rail:
+              {}
+            stokesim/deltawing/actuators/rfin:
+              {}
+            stokesim/deltawing/actuators/thruster:
+              {}
+      Update Interval: 0
+      Value: true
+    - Class: rviz/Group
+      Displays:
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 85; 0; 255
+          Enabled: true
+          Head Diameter: 0.300000012
+          Head Length: 0.200000003
+          Length: 0.125
+          Line Style: Billboards
+          Line Width: 2
+          Name: deltawing_path
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.0500000007
+          Shaft Diameter: 0.100000001
+          Shaft Length: 0.100000001
+          Topic: /stokesolve/deltawing/path
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Class: rviz/Polygon
+          Color: 25; 255; 0
+          Enabled: true
+          Name: deltawing_polygon
+          Topic: /stokesolve/deltawing/polygon
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 20
+          Class: rviz/Pose
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.300000012
+          Head Radius: 0.100000001
+          Name: deltawing_target
+          Shaft Length: 1
+          Shaft Radius: 0.0500000007
+          Shape: Axes
+          Topic: /stokesolve/deltawing/target
+          Unreliable: false
+          Value: true
+      Enabled: true
+      Name: deltawing
+    - Class: rviz/Group
+      Displays:
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 85; 0; 255
+          Enabled: true
+          Head Diameter: 0.300000012
+          Head Length: 0.200000003
+          Length: 0.125
+          Line Style: Billboards
+          Line Width: 2
+          Name: quadwing_path
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.0500000007
+          Shaft Diameter: 0.100000001
+          Shaft Length: 0.100000001
+          Topic: /stokesolve/quadwing/path
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Class: rviz/Polygon
+          Color: 25; 255; 0
+          Enabled: true
+          Name: quadwing_polygon
+          Topic: /stokesolve/quadwing/polygon
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 20
+          Class: rviz/Pose
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.300000012
+          Head Radius: 0.100000001
+          Name: quadwing_target
+          Shaft Length: 1
+          Shaft Radius: 0.0500000007
+          Shape: Axes
+          Topic: /stokesolve/quadwing/target
+          Unreliable: false
+          Value: true
+      Enabled: true
+      Name: quadwing
+    - Alpha: 0.5
+      Blocks: 6
+      Class: rviz_plugins/AerialMapDisplay
+      Draw Behind: true
+      Dynamically reload: false
+      Enabled: true
+      Frame Convention: XYZ -> ENU
+      Name: AerialMapDisplay
+      Object URI: http://tile.stamen.com/toner/{z}/{x}/{y}.png
+      Robot frame: stokesim/ENU
+      Topic: /stokesim/quadwing/lla
+      Value: true
+      Zoom: 16
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Default Light: true
+    Fixed Frame: stokesim/ENU
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+      Topic: /initialpose
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
+  Value: true
+  Views:
+    Current:
+      Angle: 0
+      Class: rviz/TopDownOrtho
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.0599999987
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.00999999978
+      Scale: 1
+      Target Frame: <Fixed Frame>
+      Value: TopDownOrtho (rviz)
+      X: 0
+      Y: 0
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: true
+  Height: 1176
+  Hide Left Dock: true
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd00000004000000000000022e00000411fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000002800000411000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000411fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000002800000411000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003bfc0100000002fb0000000800540069006d006501000000000000074f0000030000fffffffb0000000800540069006d006501000000000000045000000000000000000000074f0000041100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: true
+  Width: 1871
+  X: 1969
+  Y: 24

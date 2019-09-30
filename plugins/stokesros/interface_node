@@ -1,0 +1,288 @@
+#!/usr/bin/env python
+"""
+An example user-interface for the StokesROS plugin. Pass in the simulator configuration
+YAML so this can set itself up in accordance with what is being simulated. This will read
+from a gamepad / joystick and publish your commands. Press "start" to toggle whether or not
+commands are actually published (in case you just want the other features). The other features
+include publishing some "environment" for better viewing in RViz, as well as a "view" TF
+controlled by the D-pad, and markers that represent the craft surfaces. Press "X"/"Y" to switch
+which craft is in focus. Press "A" to toggle camera following. Drive with the analog inputs.
+
+"""
+from __future__ import division
+from future.utils import iteritems
+import os
+import sys
+import signal
+import yaml
+import numpy as np; npl = np.linalg
+import rospy
+import tf; trns = tf.transformations
+from std_msgs.msg import Float64MultiArray
+from geometry_msgs.msg import Point, PoseStamped
+from nav_msgs.msg import Odometry, Path
+from sensor_msgs.msg import PointCloud
+from visualization_msgs.msg import Marker
+from joystick import Joystick
+
+##################################################
+
+# Parse input arguments
+if len(sys.argv) != 2:
+    raise ValueError("Pass in the path to the simulator config file.")
+with open(sys.argv[1]) as file:
+    sim_config = yaml.safe_load(file)
+
+# Find the configurations of all stokesros plugins and parse their crafts
+crafts = []
+crafts_dict = {}
+for plugin_name, plugin_config in iteritems(sim_config["plugins"]):
+    if os.path.basename(plugin_config["bin_file"]) == "stokesros.so":
+        crafts.append({"name": plugin_config["craft_name"],
+                       "command_order": plugin_config["command_order"],
+                       "actuator_mix": list(map(set, plugin_config["actuator_mix"])),
+                       "actuators": sim_config["world"]["crafts"][plugin_config["craft_name"]]["actuators"]})
+        crafts_dict["stokesim/"+plugin_config["craft_name"]+"/FLU"] = crafts[-1]
+if len(crafts) == 0:
+    raise ValueError("No StokesROS plugins were found in '{}'!".format(sys.argv[1]))
+
+##################################################
+
+# Function for handling whether pilot commanding is enabled
+pilot_enabled = False
+def toggle_pilot_enabled(val):
+    global pilot_enabled
+    if val:
+        pilot_enabled = not pilot_enabled
+        if pilot_enabled: print("Now commanding: {}".format(crafts[focus_index]["name"]))
+        else: print("Piloting disabled!")
+
+# Functions for handling which craft is in focus
+focus_index = 0
+def change_focus_index(val, step):
+    global focus_index
+    if val:
+        next_focus_index = focus_index + step
+        if next_focus_index >= len(crafts):
+            next_focus_index = 0
+        if next_focus_index < 0:
+            next_focus_index = len(crafts) - 1
+        focus_index = next_focus_index
+        if pilot_enabled: print("Now commanding: {}".format(crafts[focus_index]["name"]))
+        else: print("Now watching: {}".format(crafts[focus_index]["name"]))
+increment_focus_index = lambda val: change_focus_index(val, 1)
+decrement_focus_index = lambda val: change_focus_index(val, -1)
+
+##################################################
+
+# Class for view frame state
+class View(object):
+    def __init__(self):
+        self.mode = None
+        self.modes = ["follow", "look", "down"]
+        self.mode_index = -1
+        self.change_mode(1)
+        self.p = None
+        self.q = None
+        self.parent_frame = None
+    def change_mode(self, val):
+        if val:
+            self.mode_index += 1
+            if self.mode_index >= len(self.modes): self.mode_index = 0
+            self.mode = self.modes[self.mode_index]
+            if self.mode == "follow":
+                self.dist = -5
+                self.elev = 15
+                self.azim = 0
+                self.dist_rate = 0
+                self.elev_rate = 0
+                self.azim_rate = 0
+    def zoom_out(self, val):
+        self.dist_rate = -val*5  # m/s
+    def zoom_in(self, val):
+        self.dist_rate = val*5  # m/s
+    def change_elev_rate(self, val):
+        self.elev_rate = -val*45  # deg/s
+    def change_azim_rate(self, val):
+        self.azim_rate = val*45  # deg/s
+    def update(self, dt):
+        self.dist += dt*self.dist_rate
+        self.elev += dt*self.elev_rate
+        self.azim += dt*self.azim_rate
+view = View()
+
+# Button-to-operation map
+button_callbacks = {
+    "SR": toggle_pilot_enabled,
+    "X": decrement_focus_index,
+    "Y": increment_focus_index,
+    "A": view.change_mode,
+    "L": view.zoom_out,
+    "R": view.zoom_in,
+    "DV": view.change_elev_rate,
+    "DH": view.change_azim_rate
+}
+
+##################################################
+
+# Connect to ROScore, TF, and initialize joystick
+rospy.init_node("stokesim_interface")
+tfb = tf.TransformBroadcaster()
+loop_rate = 30  # Hz
+pub_rate = rospy.Rate(loop_rate)
+joystick = Joystick(button_callbacks=button_callbacks)
+
+##################################################
+
+# Initialize command and surface-marker publishers
+command_pubs = []
+surface_pubs = {}
+for craft in crafts:
+    command_pubs.append(rospy.Publisher("stokesim/"+craft["name"]+"/commands", Float64MultiArray, queue_size=1))
+    surface_pubs[craft["name"]] = {}
+    for actuator_name, actuator in iteritems(craft["actuators"]):
+        if actuator["type"] == "surface":
+            surface_pubs[craft["name"]][actuator_name] = rospy.Publisher("stokesim/"+craft["name"]+"/actuators/"+actuator_name+"_marker", Marker, queue_size=1)
+aux_command_pub = rospy.Publisher("stokesim/interface/commands", Float64MultiArray, queue_size=1)
+
+##################################################
+
+# Initialize environment publishers
+world_frame = "stokesim/ENU"
+scenery_pub = rospy.Publisher("stokesim/facade/scenery", PointCloud, queue_size=1)
+scenery = PointCloud()
+scenery.header.frame_id = world_frame
+scenery.points = []
+scenery_grid = np.mgrid[-1000:1000:100, -1000:1000:100]
+for i in range(scenery_grid[0].shape[0]):
+    for j in range(scenery_grid[0].shape[1]):
+        x = scenery_grid[0, i, j]
+        y = scenery_grid[1, i, j]
+        scenery.points.append(Point(x, y, -100))
+        scenery.points.append(Point(x, y, 2000))
+road_pub = rospy.Publisher("stokesim/facade/road", Path, queue_size=1)
+road = Path()
+road.header.frame_id = world_frame
+for s in np.arange(-1, 1, 0.005):
+    pose_stamped = PoseStamped()
+    (pose_stamped.pose.position.x,
+     pose_stamped.pose.position.y,
+     pose_stamped.pose.position.z) = [s*1000, np.clip(500*np.sin(4*s*2*np.pi), -100, 100), -1.8]
+    road.poses.append(pose_stamped)
+obstacles_pub = rospy.Publisher("stokesim/facade/obstacles", PointCloud, queue_size=1)
+obstacles = PointCloud()
+obstacles.header.frame_id = world_frame
+obstacles.points = []
+obstacles_grid = np.mgrid[-1000:1000:250, -1000:1000:250]
+for i in range(obstacles_grid[0].shape[0]):
+    for j in range(obstacles_grid[0].shape[1]):
+        x = obstacles_grid[0, i, j]
+        y = obstacles_grid[1, i, j]
+        obstacles.points.append(Point(x, y, 2000*np.random.sample()))
+
+##################################################
+
+# Initialize craft state subscribers
+def state_callback(msg):
+    craft_position = np.array([msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z], dtype=np.float64)
+    # If this message is for the current craft of focus...
+    if msg.child_frame_id == "stokesim/"+crafts[focus_index]["name"]+"/FLU":
+        # Handle view frame
+        if view.mode == "follow":
+            view.parent_frame = world_frame
+            view.q = trns.quaternion_from_euler(0, np.deg2rad(view.elev), np.deg2rad(view.azim))
+            view.p = craft_position + view.dist*trns.quaternion_matrix(view.q)[:3, 0]
+        elif view.mode == "look":
+            view.parent_frame = world_frame
+            look = craft_position - view.p
+            view.azim = np.arctan2(look[1], look[0])
+            view.elev = -np.arctan2(look[2], npl.norm(look[:2]))
+            view.q = trns.quaternion_from_euler(0, view.elev, view.azim)
+        elif view.mode == "down":
+            view.parent_frame = msg.child_frame_id
+            view.p = [0, 0, 0]
+            view.q = [0, np.sqrt(2)/2, 0, np.sqrt(2)/2]
+        else:
+            raise ValueError("Unsupported view mode requested.")
+        tfb.sendTransform(view.p,
+                          view.q,
+                          msg.header.stamp,
+                          "stokesim/view",
+                          view.parent_frame)
+    # Handle surface marker for this craft (not necessarily the focus)
+    craft = crafts_dict[msg.child_frame_id]
+    for actuator_name, actuator in iteritems(craft["actuators"]):
+        if actuator["type"] == "surface":
+            dims = actuator["dims"]
+            surface_msg = Marker()
+            surface_msg.header.stamp = msg.header.stamp
+            surface_msg.header.frame_id = "stokesim/"+craft["name"]+"/actuators/"+actuator_name
+            surface_msg.type = Marker.CUBE
+            (surface_msg.pose.position.x,
+             surface_msg.pose.position.y,
+             surface_msg.pose.position.z) = [dims[0]/2, dims[1]/2, 0]
+            surface_msg.scale.x = abs(dims[0])
+            surface_msg.scale.y = abs(dims[1])
+            surface_msg.scale.z = 5e-3
+            surface_msg.color.a = 1
+            (surface_msg.color.r,
+             surface_msg.color.g,
+             surface_msg.color.b) = [1, 1, 1]
+            surface_pubs[craft["name"]][actuator_name].publish(surface_msg)
+state_subs = []
+for craft in crafts:
+    state_subs.append(rospy.Subscriber("stokesim/"+craft["name"]+"/state", Odometry, state_callback, queue_size=1))
+
+##################################################
+
+# Handler for ctrl+c exits since Joystick spools a new thread
+def exit_handler(signal, frame):
+    print("Terminating...")
+    sys.exit(0)
+signal.signal(signal.SIGINT, exit_handler)
+
+##################################################
+
+# Main loop reads user input and maps it to the proper craft
+joystick.start_joystick_thread()
+print("Press start to enable piloting.")
+while not rospy.is_shutdown():
+    ros_time = rospy.get_rostime()
+
+    # Current pilot command and craft of focus
+    pilot_command = joystick.get_command()
+    aux_command_pub.publish(data=pilot_command.as_array())
+    focus_craft = crafts[focus_index]
+
+    # Mix pilot commands into actuator effort commands
+    if pilot_enabled:
+        commands = []
+        for name, mix in zip(focus_craft["command_order"], focus_craft["actuator_mix"]):
+            effort = np.float64(0)
+            if      "throttle" in mix: effort += pilot_command.throttle
+            if     "nthrottle" in mix: effort -= pilot_command.throttle
+            if          "roll" in mix: effort += pilot_command.roll
+            if         "nroll" in mix: effort -= pilot_command.roll
+            if         "pitch" in mix: effort += pilot_command.pitch
+            if        "npitch" in mix: effort -= pilot_command.pitch
+            if           "yaw" in mix: effort += pilot_command.yaw
+            if          "nyaw" in mix: effort -= pilot_command.yaw
+            if  "left_trigger" in mix: effort += pilot_command.left_trigger
+            if "left_vertical" in mix: effort += pilot_command.left_vertical
+            commands.append(effort)
+        command_pubs[focus_index].publish(data=commands)
+
+    # Publish environment
+    scenery.header.stamp = ros_time
+    scenery_pub.publish(scenery)
+    road.header.stamp = ros_time
+    road_pub.publish(road)
+    obstacles.header.stamp = ros_time
+    obstacles_pub.publish(obstacles)
+    view.update(1/loop_rate)
+
+    # Rest
+    pub_rate.sleep()
+
+# Terminate joystick reading thread
+joystick.stop_joystick_thread()
