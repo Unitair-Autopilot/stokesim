@@ -159,18 +159,6 @@ rosclock = {
 
 ####
 
-# This example of defining a Unity plugin is pedagogical, as it is not included in the actual dictionary of plugins to run (below)
-quadwing_unity = {
-    "bin_file": os.path.join(plugins_dir, "unity_plugin.so"),
-    "call_freq": 200,
-    "craft_name": "quadwing",
-    "uav_num": 0,
-    "unity_ip": "127.0.0.1",
-    "unity_altitude_offset": 59.47916
-}
-
-####
-
 # This example of defining a Trigger plugin is pedagogical, as it is not included in the actual dictionary of plugins to run (below)
 trigger = {
     "bin_file": os.path.join(plugins_dir, "trigger.so"),
@@ -204,7 +192,6 @@ try:
 except ImportError:
     print("    ROS not installed - skipping inclusion of ROS-dependent plugins.")
 
-#plugins["quadwing_unity"] = quadwing_unity
 #plugins["trigger"] = trigger
 
 ##################################################

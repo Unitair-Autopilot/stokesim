@@ -18,13 +18,6 @@ if(DEFINED ENV{ROS_ROOT})
     set(BUILD_ROS_PLUGIN ON)
 endif()
 
-set(BUILD_MAVLINK_PLUGIN OFF CACHE STRING "Build the Mavlink plugin in ./plugins/")
-if(${PX4_BUILD_MAVLINK_PLUGIN})
-    set(BUILD_MAVLINK_PLUGIN ON)
-endif()
-
-set(BUILD_UNITY_PLUGIN ON CACHE STRING "Build the Unity plugin in ./plugins/")
-
 option(DEBUG_BUILD "Build with -O0 -g and verbose makefile" OFF)
 
 set(INSTALL_PREFIX "/usr/local" CACHE STRING "Destination with subdirectories 'lib', 'include', and 'bin' to install files to")
@@ -48,8 +41,6 @@ print_config_flag(${VERBOSE_CONFIG_GEN}          "Enable messages during config 
 print_config_flag(${BUILD_LOGGER_PLUGIN}         "Build the example logger plugin:      ")
 print_config_flag(${BUILD_TRIGGER_PLUGIN}        "Build the example trigger plugin:     ")
 print_config_flag(${BUILD_ROS_PLUGIN}            "Build the example ROS plugin:         ")
-print_config_flag(${BUILD_MAVLINK_PLUGIN}        "Build the Mavlink plugin:             ")
-print_config_flag(${BUILD_UNITY_PLUGIN}          "Build the Unity plugin:               ")
 print_config_flag(${DEBUG_BUILD}                 "Build for debugging:                  ")
 message(STATUS                                   "Prefix for 'make install' directories: ${INSTALL_PREFIX}")
 message(STATUS "=========================")
@@ -176,59 +167,6 @@ if(${BUILD_ROS_PLUGIN})
                                    ${catkin_LIBRARIES})
     set_target_properties(rosclock  PROPERTIES PREFIX ""
                                                LIBRARY_OUTPUT_DIRECTORY ${PLUGIN_BUILD_DIR})
-endif()
-
-##
-
-if(${BUILD_UNITY_PLUGIN})
-    find_package("yaml-cpp" REQUIRED)
-    find_package(CURL REQUIRED)
-    set(UNITY_SRC_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/plugins/unity/src")
-    set(UNITY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plugins/unity/include")
-    add_library("unity_plugin" SHARED
-                               "${UNITY_SRC_DIRECTORY}/udp_link.cpp"
-                               "${UNITY_SRC_DIRECTORY}/unity_rest_interface.cpp"
-                               "${UNITY_SRC_DIRECTORY}/unity_plugin.cpp")
-    target_include_directories("unity_plugin" PUBLIC
-                                              ${CURL_INCLUDE_DIRS}
-                                              ${UNITY_INCLUDE_DIR})
-    target_link_libraries("unity_plugin" pthread rt ${CURL_LIBRARIES} ${PROJECT} ${YAML_CPP_LIBRARIES})
-    set_target_properties("unity_plugin" PROPERTIES PREFIX ""
-                                                    LIBRARY_OUTPUT_DIRECTORY ${PLUGIN_BUILD_DIR})
-endif()
-
-##
-
-if(${BUILD_MAVLINK_PLUGIN})
-    set(MAVLINK_MESSAGE_DIR "${PX4_SOURCE_DIR}/mavlink/include/mavlink/v2.0")
-    message(STATUS "Building mavlink plugin against message definitions in ${MAVLINK_MESSAGE_DIR}")
-
-    set(MAVLINK_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plugins/mavlink/src")
-    set(MAVLINK_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plugins/mavlink/include")
-    set(THREADS_PREFER_PTHREAD_FLAG ON)
-
-    find_package(Boost REQUIRED COMPONENTS system)
-    find_package(Threads REQUIRED)
-
-    include_directories(${MAVLINK_MESSAGE_DIR}
-                        ${MAVLINK_INCLUDE_DIR}
-                        ${Boost_INCLUDE_DIRS})
-
-    add_library("mavlink_plugin" SHARED
-                "${MAVLINK_SRC_DIR}/connection_manager.cpp"
-                "${MAVLINK_SRC_DIR}/udp_link.cpp"
-                "${MAVLINK_SRC_DIR}/serial_link.cpp"
-                "${MAVLINK_SRC_DIR}/mavlink_plugin.cpp")
-
-    target_link_libraries("mavlink_plugin" rt
-                                           boost_thread
-                                           ${Boost_LIBRARIES}
-                                           ${PROJECT}
-                                           ${YAML_CPP_LIBRARIES}
-                                           ${CMAKE_THREAD_LIBS_INIT})
-
-    set_target_properties("mavlink_plugin" PROPERTIES PREFIX ""
-                                                      LIBRARY_OUTPUT_DIRECTORY ${PLUGIN_BUILD_DIR})
 endif()
 
 ################################################## EXECUTABLE TARGETS
