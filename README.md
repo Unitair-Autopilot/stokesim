@@ -6,6 +6,8 @@ This simulator is focused on utility for roboticists. It captures a large amount
 
 Check out [the wiki](https://github.com/Unitair-Autopilot/stokesim/wiki/Walk-Through) for more details.
 
+![StokeSim manual flight RViz preview](https://raw.githubusercontent.com/wiki/Unitair-Autopilot/stokesim/media/stokesim_manual_flights_preview_hd.webp)
+
 #### Dependencies
 
 - [C++](https://isocpp.org/wiki/faq/cpp11) (11 or 14)
